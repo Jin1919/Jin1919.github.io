@@ -8,8 +8,7 @@ draft: false
 ---
 
 > 本文以简单的 `Hello World` 程序为例，讲解 VS Code 下 C++ 的安装、配置、编译、运行与调试完整流程。
-
-VS Code 只是代码编辑器，**本身不自带 C++ 编译器**，需要额外安装编译器 + 配套扩展才可以正常编写运行 C++ 代码。
+> VS Code 只是代码编辑器，**本身不自带 C++ 编译器**，需要额外安装编译器 + 配套扩展才可以正常编写运行 C++ 代码。
 
 ## 一、安装 VS Code
 
@@ -23,23 +22,32 @@ VS Code 只是代码编辑器，**本身不自带 C++ 编译器**，需要额外
 
 ## 二、安装 C++ 编译器
 
-### Windows
+### Windows（MSYS2 环境）
 
-Windows 可选两种编译器：`MinGW‑w64` 或者 VS 的 MSVC。
+本文使用 MSYS2 作为编译环境。MSYS2 提供完整的 GCC 工具链，相比 MinGW‑w64 更新、包管理更方便。
 
-推荐使用 MinGW‑w64：
+1. 前往 [MSYS2官网](https://www.msys2.org/) 下载安装 MSYS2。
+2. 打开 **MSYS2 UCRT64** 终端（必须是 UCRT64，不要用 MSYS、MINGW64），执行更新系统并安装编译工具链：
 
-1. 安装完成后，把 `bin` 目录加入系统环境变量 `Path`
-   示例路径：
+```bash
+pacman -Syu
+pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-gdb
+```
+
+3. 将 MSYS2 的 UCRT64 的 `bin` 目录添加到系统环境变量 `Path`
+   示例路径（根据你的安装目录修改）：
 
 ```
-C:\mingw64\bin
+C:\msys64\ucrt64\bin
 ```
 
-2. 打开 PowerShell，验证编译器是否生效
+> ⚠️ 注意：不要添加 msys2/usr/bin，只添加 `ucrt64/bin`。
+
+4. **重启 PowerShell / Windows终端**，验证编译器是否生效
 
 ```
 g++ --version
+gdb --version
 ```
 
 输出版本信息即配置成功。
@@ -69,8 +77,7 @@ clang++ --version
 
 1. **C/C++（Microsoft）**：语法高亮、智能补全、调试核心扩展【必装】
 2. **Code Runner**：可选，快速一键运行小代码片段
-
-安装完成后重启 VS Code。
+   安装完成后重启 VS Code。
 
 ## 四、创建 C++ 项目
 
@@ -96,7 +103,9 @@ int main() {
 
 ### VS Code 内置终端运行
 
-调出终端快捷键：`Ctrl +``
+调出终端快捷键：`Ctrl + ``
+
+> Windows终端建议使用 PowerShell，环境变量配置完成后可以直接调用 `g++`，不需要打开 MSYS2 窗口。
 
 进入源码所在目录，执行编译：
 
@@ -109,7 +118,6 @@ g++ main.cpp -o main
 ```
 # Windows
 .\main.exe
-
 # Linux / macOS
 ./main
 ```
@@ -137,7 +145,7 @@ if ($LASTEXITCODE -eq 0) { .\main.exe }
 
 1. 打开 `main.cpp`
 2. 点击右上角运行按钮，或者右键代码区选择 `Run Code`
-3. 输出结果展示在输出面板
+3. 输出结果展示在输出面板>
 
 > ⚠️ 注意：Code Runner 适合简单 Demo；做调试、输入交互、多文件项目，优先使用内置终端。
 
@@ -159,6 +167,8 @@ g++ -g main.cpp -o main
 - 变量监视
 - 查看调用栈
 - 继续运行 / 终止调试
+
+> MSYS2环境注意：VS Code调试会自动调用系统PATH里的gdb，确认 `ucrt64/bin` 在系统Path中，否则调试器无法启动。
 
 ## 七、配置自动编译任务 tasks.json
 
@@ -196,11 +206,13 @@ g++ -g main.cpp -o main
 
 ### 1. 提示找不到 g++
 
-- Windows：检查编译器是否安装，`mingw64/bin` 是否加入系统 `Path`
+- Windows：检查 MSYS2 的 `ucrt64/bin` 是否加入系统 `Path`；修改环境变量后**必须重启终端/VS Code**。
 
 ```
 where g++
 ```
+
+> 如果输出路径不是 `C:\msys64\ucrt64\bin\g++.exe`，代表环境变量配置错误。
 
 - Linux / macOS
 
@@ -225,12 +237,18 @@ g++ main.cpp -std=c++17 -o main
 g++ main.cpp -std=c++20 -o main
 ```
 
+### 5. MSYS2 常见坑
+
+1. 不要使用 MSYS2 的 MSYS 子系统，务必使用 **UCRT64**；
+2. 环境变量只添加 `ucrt64/bin`，不要添加 `usr/bin`；
+3. 修改系统环境变量后，所有终端、VS Code 需要完全重启才会生效。
+
 ## 总结
 
 VS Code 编写 C++ 的完整流程：
 
 1. 安装 VS Code
-2. 安装对应平台 C++ 编译器
+2. Windows安装MSYS2，安装ucrt64 gcc/gdb工具链并配置系统环境变量；Linux/macOS安装对应编译器
 3. 安装 Microsoft C/C++ 扩展
 4. 创建 `.cpp` 源码文件
 5. 调用 g++ 编译源代码
